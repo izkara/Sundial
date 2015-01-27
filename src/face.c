@@ -187,7 +187,7 @@ static void get_tick_data(double lat, double lng, double ref)
     // else thr[h+7] = t;
 
     //load angles from north
-    thla[h+7] = hla;
+    thla[h+7] = hla; 
   }
 }
 ////////http://rosettacode.org/wiki/Horizontal_sundial_calculations#C
