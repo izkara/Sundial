@@ -106,6 +106,20 @@ static void config_provider(void *context) {
 }
 
 
+double _pow(double a, double b) {
+    double c = 1;
+    int i;
+    for (i=0; i<b; i++)
+        c *= a;
+    return c;
+}
+double _fact(double x) {
+    double ret = 1;
+    int i;
+    for (i=1; i<=x; i++) 
+        ret *= i;
+    return ret;
+}
 double _sin(double x) {
     double y = x;
     double s = -1;
