@@ -161,11 +161,14 @@ float arctan(float x){
 }
 //////////http://www.experts-exchange.com/Other/Math_Science/Q_24377002.html
 
+<<<<<<< HEAD
 
 
 #define DR(X) ((X)*M_PI/180.0)
 #define RD(X) ((X)*180.0/M_PI)
 
+=======
+>>>>>>> ebe3d01e42212b75df5fb6f2810a6b67a7822839
 int get_tick_data(double lat, double lng, double ref)
 {
   double slat;
