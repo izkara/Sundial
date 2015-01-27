@@ -1,13 +1,22 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_LATITUDE": 0,
+        "KEY_LONGITUDE": 1
+    },
     "capabilities": [
-        ""
+        "location"
     ],
     "companyName": "MTID",
     "longName": "Sundial",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/compass_background.png",
+                "name": "COMPASS_BACKGROUND",
+                "type": "png"
+            }
+        ]
     },
     "shortName": "Sundial",
     "uuid": "75f0676a-0aa0-4a79-b8eb-f743ee03f6ed",
