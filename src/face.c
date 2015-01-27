@@ -167,7 +167,7 @@ float arctan(float x){
 #define DR(X) ((X)*M_PI/180.0)
 #define RD(X) ((X)*180.0/M_PI)
 
-int get_tick_data(double lat, double lng, double ref)
+static void get_tick_data(double lat, double lng, double ref)
 {
   double slat;
   int h;
@@ -187,9 +187,8 @@ int get_tick_data(double lat, double lng, double ref)
     // else thr[h+7] = t;
 
     //load angles from north
-    thla[h] = hla;
+    thla[h+7] = hla;
   }
-  return 0;
 }
 ////////http://rosettacode.org/wiki/Horizontal_sundial_calculations#C
 
@@ -218,6 +217,7 @@ static void init() {
   GRect bounds = layer_get_frame(window_layer);
   
   GPoint center = GPoint(bounds.size.w/2, bounds.size.h/2);
+  get_tick_data(40, 79, 80);
   fill_ticks(center);
   
   path_layer = layer_create(bounds);
