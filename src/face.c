@@ -16,35 +16,15 @@ static const GPathInfo HOUSE_PATH_POINTS = {
     {0, 0}, {20, 0}, {20,20}, {0,20}   
   }
 };
-// // This is an example of a path that looks like a compound path
-// // If you rotate it however, you will see it is a single shape
-// static const GPathInfo INFINITY_RECT_PATH_POINTS = {
-//   16,
-//   (GPoint []) {
-//     {-50, 0},
-//     {-50, -60},
-//     {10, -60},
-//     {10, -20},
-//     {-10, -20},
-//     {-10, -40},
-//     {-30, -40},
-//     {-30, -20},
-//     {50, -20},
-//     {50, 40},
-//     {-10, 40},
-//     {-10, 0},
-//     {10, 0},
-//     {10, 20},
-//     {30, 20},
-//     {30, 0}
-//   }
-// };
+
 #define HRS 16
 
   
 static GPath *house_path;
 
 static GPoint ticks[HRS];
+static double thla[HRS];
+static int thr[HRS];
 
 #define NUM_GRAPHIC_PATHS 1
 
@@ -72,7 +52,7 @@ static void path_layer_update_callback(Layer *me, GContext *ctx) {
   // multiple instances of the same path filled or outline.
   
   graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_context_set_fill_color(ctx, GColorBlack); 	
+  graphics_context_set_fill_color(ctx, GColorBlack);  
   
   for (int i = 0; i < HRS; i++) {
     graphics_draw_circle(ctx, ticks[i], 5);
@@ -125,11 +105,77 @@ static void config_provider(void *context) {
   window_raw_click_subscribe(BUTTON_ID_SELECT, select_raw_down_handler, select_raw_up_handler, NULL);
 }
 
+
+double _sin(double x) {
+    double y = x;
+    double s = -1;
+    int i;
+    for (i=3; i<=100; i+=2) {
+        y+=s*(_pow(x,i)/_fact(i));
+        s *= -1;
+    }  
+    return y;
+}
+double _cos(double x) {
+    double y = 1;
+    double s = -1;
+    int i;
+    for (i=2; i<=100; i+=2) {
+        y+=s*(_pow(x,i)/_fact(i));
+        s *= -1;
+    }  
+    return y;
+}
+double _tan(double x) {
+     return (_sin(x)/_cos(x));  
+}
+/////////////////http://stackoverflow.com/questions/2284860/how-does-c-compute-sin-and-other-math-functions
+float arctan(float x){
+    if( x < 0 ){ return -arctan(-x); }
+    if( x > 1 ){ return M_PI/2 - arctan(1/x); }
+    if( x <= 1/8.0 ){ return  0.9974133042 * x; }
+    if( x <= 2/8.0 ){ return  0.004072621 + 0.964989344 * x; }
+    if( x <= 3/8.0 ){ return .017899968 + 0.910336056 * x; }
+    if( x <= 4/8.0 ){ return .044740546 + 0.839015512 * x; }
+    if( x <= 5/8.0 ){ return .084473784 + 0.759613648 * x; }
+    if( x <= 6/8.0 ){ return .134708924 + 0.679214352 * x; }
+    if( x <= 7/8.0 ){ return .192103293 + 0.602631128 * x; }
+    if( x <= 8/8.0 ){ return .253371504 + 0.532545304 * x; }
+}
+//////////http://www.experts-exchange.com/Other/Math_Science/Q_24377002.html
+
+int get_tick_data(double lat, lng, ref)
+{
+  double slat;
+  int h;
+ 
+  slat = _sin(DR(lat));
+ 
+  for(h = -7; h <= 7; h++)
+  {
+    double hla, hra;
+    hra = 15.0*h;
+    hra = hra - lng + ref;
+    hla = RD(arctan(slat * _tan(DR(hra))));
+
+    //load hours
+    int t = (12+h)%12;
+    if (time == 0) thr[h+7]=12;
+    else thr[h+7] = t;
+
+    //load angles from north
+    thla[i] = hla;
+  }
+  return 0;
+}
+////////http://rosettacode.org/wiki/Horizontal_sundial_calculations#C
+
+
 static void fillTicks(GPoint cen){
    for (int i = 0; i < HRS; i++) {
 //      int32_t second_angle = TRIG_MAX_ANGLE * (t.tm_sec / 60);
-     
-     int32_t second_angle = (-TRIG_MAX_ANGLE/4) + (TRIG_MAX_ANGLE/2*i/(HRS-1));
+     int32_t second_angle = TRIG_MAX_ANGLE + (TRIG_MAX_ANGLE * (thla[i]/360));
+     // int32_t second_angle = (-TRIG_MAX_ANGLE/4) + (TRIG_MAX_ANGLE/2*i/(HRS-1));
      int y = (-cos_lookup(second_angle) * (cen.x-5) / TRIG_MAX_RATIO) + cen.y;
      int x = (sin_lookup(second_angle) * (cen.x-5) / TRIG_MAX_RATIO) + cen.x;
      ticks[i] = GPoint(x, y);
@@ -158,7 +204,7 @@ static void init() {
   // Pass the corresponding GPathInfo to initialize a GPath
   
   house_path = gpath_create(&HOUSE_PATH_POINTS);
-	
+  
 //   infinity_path = gpath_create(&INFINITY_RECT_PATH_POINTS);
 
   // This demo allows you to cycle paths in an array
