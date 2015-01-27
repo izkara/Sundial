@@ -1,7 +1,10 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_LATITUDE": 0,
+        "KEY_LONGITUDE": 1
+    },
     "capabilities": [
-        ""
+        "location"
     ],
     "companyName": "MTID",
     "longName": "Sundial",

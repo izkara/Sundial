@@ -12,6 +12,8 @@
 #define KEY_LATITUDE 0
 #define KEY_LONGITUDE 1
 
+static int latLong[2];
+
 // Group all UI elements in a global struct
 static struct CompassUI {
 	Window *window;
@@ -43,6 +45,9 @@ void compass_heading_handler(CompassHeadingData heading_data){
 
 	}
 
+	APP_LOG(APP_LOG_LEVEL_ERROR, "%d",latLong[0]);
+	APP_LOG(APP_LOG_LEVEL_ERROR, "%d",latLong[1]);
+
 	// trigger layer for refresh
 	layer_mark_dirty(s_ui.path_layer);
 }
@@ -55,9 +60,9 @@ static void path_layer_update_callback(Layer *path, GContext *ctx) {
 	GRect bounds = layer_get_frame(path); // grabbing frame of current layer
 	GPoint path_center = GPoint(bounds.size.w / 2, bounds.size.h / 2); // creating center point
 
-	graphics_fill_circle(ctx, path_center, 10); // use it to make a black, centered circle
+	graphics_fill_circle(ctx, path_center, 8); // use it to make a black, centered circle
 	graphics_context_set_fill_color(ctx, GColorWhite);
-	graphics_fill_circle(ctx, path_center, 9); // then put a white circle on top
+	graphics_fill_circle(ctx, path_center, 7); // then put a white circle on top
 }
 
 // Initializes the window and all the UI elements
@@ -100,15 +105,17 @@ static void window_unload(Window *window) {
 }
 
 // AppMessage Callbacks
-static void inbox_received_callback(DictionaryIterator *iterator) {
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
 	Tuple *t = dict_read_first(iterator);
 
 	while(t != NULL) {
 		switch(t->key) {
 			case KEY_LATITUDE:
+				latLong[0] = (int)t->value->int32;
 				break;
 			case KEY_LONGITUDE:
+				latLong[1] = (int)t->value->int32;
 				break;
 			default:
 				APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized", (int)t->key);

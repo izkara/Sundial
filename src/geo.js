@@ -10,6 +10,8 @@ function locationSuccess(pos) {
 		"KEY_LONGITUDE": longitude
 	};
 
+	console.log(dictionary['KEY_LATITUDE']);
+
 	// Send to Pebble
 	Pebble.sendAppMessage(dictionary,
 		function(e) {
