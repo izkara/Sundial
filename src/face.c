@@ -17,7 +17,7 @@ static const GPathInfo HOUSE_PATH_POINTS = {
   }
 }; 
 
-#define HRS 16
+#define HRS 14
 
   
 static GPath *house_path;
