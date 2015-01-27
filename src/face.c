@@ -17,7 +17,7 @@ static const GPathInfo HOUSE_PATH_POINTS = {
   }
 }; 
 
-#define HRS 14
+#define HRS 15
 
   
 static GPath *house_path;
@@ -173,8 +173,10 @@ static void get_tick_data(double lat, double lng, double ref)
   int h;
  
   slat = _sin(DR(lat));
- 
-  for(h = -7; h <= 7; h++)
+//  15
+//    0 1  2  3  4  5  6 7 8 9 10 11 12 13 14
+//     -6 -5 -4 -3 -2 -1 0 1 2  3  4  5  6
+  for(h = -6; h <7; h++)
   {
     double hla, hra;
     hra = 15.0*h;
@@ -189,6 +191,10 @@ static void get_tick_data(double lat, double lng, double ref)
     //load angles from north
     thla[h+7] = hla; 
   }
+  thla[1] = thla[13];
+  thla[13] = -thla[13];
+  thla[14] = thla[13] + (thla[13] - thla[12]);
+  thla[0] = -thla[14];
 }
 ////////http://rosettacode.org/wiki/Horizontal_sundial_calculations#C
 
@@ -198,8 +204,8 @@ static void fill_ticks(GPoint cen){
 //      int32_t second_angle = TRIG_MAX_ANGLE * (t.tm_sec / 60);
      int32_t second_angle = TRIG_MAX_ANGLE + (TRIG_MAX_ANGLE * (thla[i]/360));
      // int32_t second_angle = (-TRIG_MAX_ANGLE/4) + (TRIG_MAX_ANGLE/2*i/(HRS-1));
-     int y = (-cos_lookup(second_angle) * (cen.x-5) / TRIG_MAX_RATIO) + cen.y;
-     int x = (sin_lookup(second_angle) * (cen.x-5) / TRIG_MAX_RATIO) + cen.x;
+     int y = (-cos_lookup(second_angle) * (cen.x-9) / TRIG_MAX_RATIO) + cen.y;
+     int x = (sin_lookup(second_angle) * (cen.x-9) / TRIG_MAX_RATIO) + cen.x;
      ticks[i] = GPoint(x, y);
   }
 }
