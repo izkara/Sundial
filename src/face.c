@@ -158,23 +158,15 @@ float arctan(float x){
     if( x <= 6/8.0 ){ return .134708924 + 0.679214352 * x; }
     if( x <= 7/8.0 ){ return .192103293 + 0.602631128 * x; }
     if( x <= 8/8.0 ){ return .253371504 + 0.532545304 * x; }
+    else return 0;
 }
 //////////http://www.experts-exchange.com/Other/Math_Science/Q_24377002.html
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> a4b3bddf7b447bba6244f9673ba3416bec973b29
 
 
 #define DR(X) ((X)*M_PI/180.0)
 #define RD(X) ((X)*180.0/M_PI)
 
-<<<<<<< HEAD
-=======
-=======
->>>>>>> ebe3d01e42212b75df5fb6f2810a6b67a7822839
->>>>>>> a4b3bddf7b447bba6244f9673ba3416bec973b29
 int get_tick_data(double lat, double lng, double ref)
 {
   double slat;
@@ -202,7 +194,7 @@ int get_tick_data(double lat, double lng, double ref)
 ////////http://rosettacode.org/wiki/Horizontal_sundial_calculations#C
 
 
-static void fillTicks(GPoint cen){
+static void fill_ticks(GPoint cen){
    for (int i = 0; i < HRS; i++) {
 //      int32_t second_angle = TRIG_MAX_ANGLE * (t.tm_sec / 60);
      int32_t second_angle = TRIG_MAX_ANGLE + (TRIG_MAX_ANGLE * (thla[i]/360));
@@ -226,7 +218,7 @@ static void init() {
   GRect bounds = layer_get_frame(window_layer);
   
   GPoint center = GPoint(bounds.size.w/2, bounds.size.h/2);
-  fillTicks(center);
+  fill_ticks(center);
   
   path_layer = layer_create(bounds);
   layer_set_update_proc(path_layer, path_layer_update_callback);
