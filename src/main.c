@@ -10,13 +10,11 @@
 
 // GLOBAL VAIRIABLES ==========
 static int latLong[2];
-static int path_angle = 0;
+static int heading;
+static int currentHour;
 static bool outline_mode = false;
 
 // STATIC STRUCTS ==========
-static Window *window;
-static Layer *path_layer;
-
 static struct SundialUI {
 	Window *window;
 	BitmapLayer *bitmap_layer;
@@ -31,7 +29,7 @@ static double thla[HRS];
 
 // PATHS ==========
 static const GPathInfo GNOMON = {4,
-	(GPoint []) {{-5, 0}, {5, 0}, {5,-30}, {-5,- 30}}
+	(GPoint []) {{-3, 0}, {3, 0}, {3,-30}, {-3,- 30}}
 };
 
 static const GPathInfo TICK = {4,
@@ -97,11 +95,31 @@ float arctan(float x){
 
 // THE PROGRAM ==========
 
+static void update_time() {
+  // Get a tm structure
+  time_t temp = time(NULL); 
+  struct tm *tick_time = localtime(&temp);
+
+  // Create a long-lived buffer
+  static char buffer[] = "00:00";
+
+  // Write the current hours and minutes into the buffer
+  if(clock_is_24h_style()) {
+    strftime(buffer, sizeof("00:00"), "%H:%M", tick_time);
+  } else {
+    strftime(buffer, sizeof("00:00"), "%I:%M", tick_time);
+  }
+}
+
 // This is the function called by the Compass Service every time the compass heading changes by more than the filter (2 degrees in this example).
 void compass_heading_handler(CompassHeadingData heading_data){
 
 	// log north angle
-	APP_LOG(APP_LOG_LEVEL_ERROR, "Magnetic Heading: %d", heading_data.magnetic_heading);
+	// APP_LOG(APP_LOG_LEVEL_ERROR, "Magnetic Heading: %d", TRIGANGLE_TO_DEG((int)heading_data.true_heading));
+	// APP_LOG(APP_LOG_LEVEL_ERROR, "LAT: %d", latLong[0]);
+	// APP_LOG(APP_LOG_LEVEL_ERROR, "LON: %d", latLong[1]);
+
+	heading = TRIGANGLE_TO_DEG((int)heading_data.true_heading);
 
 	// Modify alert layout depending on calibration state
 	if(heading_data.compass_status == CompassStatusDataInvalid) {
@@ -135,6 +153,26 @@ static void path_layer_update_callback(Layer *me, GContext *ctx) {
 	graphics_context_set_fill_color(ctx, GColorWhite);
 	graphics_fill_circle(ctx, GPoint(x,y), 55);
 
+
+	// North Pointer
+	int northX = x + (int)(70.0 * _cos(DR(heading)));
+	int northY = y + (int)(70.0 * _sin(DR(heading)));
+	graphics_context_set_fill_color(ctx, GColorBlack);
+	graphics_fill_circle(ctx, GPoint(northX, northY), 3);
+
+	// Shadow
+	int shadowX = x + (int)(90.0 * _cos(DR(thla[currentHour - 5])));
+	int shadowY = y + (int)(90.0 * _sin(DR(thla[currentHour - 5])));
+
+	// APP_LOG(APP_LOG_LEVEL_ERROR, "HOUR: %d", currentHour);
+
+	for (int i = 0; i < 25; ++i) {
+		graphics_draw_line(ctx, GPoint(shadowX, shadowY), GPoint(x, y - i));
+	}
+
+
+
+	// Gnomon
 	if (outline_mode) {
 		// draw outline uses the stroke color
 		graphics_context_set_fill_color(ctx, GColorWhite);
@@ -152,19 +190,19 @@ static void path_layer_update_callback(Layer *me, GContext *ctx) {
 
 // up button click
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-	layer_mark_dirty(path_layer);
+	layer_mark_dirty(s_ui.path_layer);
 }
 
 // down button click
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-	layer_mark_dirty(path_layer);
+	layer_mark_dirty(s_ui.path_layer);
 }
 
 // select button press
 static void select_raw_down_handler(ClickRecognizerRef recognizer, void *context) {
 	// Show the outline of the path when select is held down
 	outline_mode = true;
-	layer_mark_dirty(path_layer);
+	layer_mark_dirty(s_ui.path_layer);
 }
 
 // select button release
@@ -172,7 +210,7 @@ static void select_raw_up_handler(ClickRecognizerRef recognizer, void *context) 
 	// Show the path filled
 	outline_mode = false;
 	// Cycle to the next path
-	layer_mark_dirty(path_layer);
+	layer_mark_dirty(s_ui.path_layer);
 }
 
 // handle all the button presses
@@ -200,20 +238,22 @@ static void get_tick_data(double lat, double lng, double ref) {
 		thla[h+7] = hla;
 	}
 
-	thla[1] = thla[13];
-	thla[13] = -thla[13];
-	thla[14] = thla[13] + (thla[13] - thla[12]);
-	thla[0] = -thla[14];
+	// weird corrections
+	thla[1] 	= thla[13];
+	thla[13] 	= -thla[13];
+	thla[14] 	= thla[13] + (thla[13] - thla[12]);
+	thla[0] 	= -thla[14];
+
 }
 
 // calculations for hour tick point positions
 static void fill_ticks(GPoint cen){
 	 for (int i = 0; i < HRS; i++) {
 
-		 int32_t second_angle = TRIG_MAX_ANGLE + (TRIG_MAX_ANGLE * (thla[i]/360));
+		 int32_t second_angle = TRIG_MAX_ANGLE + (TRIG_MAX_ANGLE * (thla[i] / 360));
 
-		 int y = (-cos_lookup(second_angle) * (cen.x-3) / TRIG_MAX_RATIO) + cen.y;
-		 int x = (sin_lookup(second_angle) * (cen.x-3) / TRIG_MAX_RATIO) + cen.x;
+		 int y = (-cos_lookup(second_angle) * (cen.x - 3) / TRIG_MAX_RATIO) + cen.y;
+		 int x = (sin_lookup(second_angle) * (cen.x - 3) / TRIG_MAX_RATIO) + cen.x;
 		 ticks[i] = GPoint(x, y);
 	}
 }
@@ -248,20 +288,17 @@ static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
 	APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox Send Success");
 }
 
+static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+  update_time();
+
+  currentHour = tick_time->tm_hour;
+}
+
 static void init() {
 
 	// initialize compass and set a filter to 2 degrees
 	compass_service_set_heading_filter(2 * (TRIG_MAX_ANGLE / 360));
 	compass_service_subscribe(&compass_heading_handler);
-
-	// Register callbacks
-	app_message_register_inbox_received(inbox_received_callback);
-	app_message_register_inbox_dropped(inbox_dropped_callback);
-	app_message_register_outbox_failed(outbox_failed_callback);
-	app_message_register_outbox_sent(outbox_sent_callback);
-
-	// Open AppMessage
-	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
 	s_ui.window = window_create();
 	window_set_fullscreen(s_ui.window, true);
@@ -281,14 +318,24 @@ static void init() {
 	tick_path = gpath_create(&TICK);
 	gnomon_path = gpath_create(&GNOMON);
 
-	path_layer = layer_create(bounds);
-	layer_set_update_proc(path_layer, path_layer_update_callback);
-	layer_add_child(window_layer, path_layer);
-
-
+	s_ui.path_layer = layer_create(bounds);
+	layer_set_update_proc(s_ui.path_layer, path_layer_update_callback);
+	layer_add_child(window_layer, s_ui.path_layer);
 
 	// Move all paths to the center of the screen
 	gpath_move_to(gnomon_path, center);
+
+	// Register with TickTimerService
+	tick_timer_service_subscribe(HOUR_UNIT, tick_handler);
+
+	// Register callbacks
+	app_message_register_inbox_received(inbox_received_callback);
+	app_message_register_inbox_dropped(inbox_dropped_callback);
+	app_message_register_outbox_failed(outbox_failed_callback);
+	app_message_register_outbox_sent(outbox_sent_callback);
+
+	// Open AppMessage
+	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 }
 
 static void deinit() {
@@ -297,7 +344,7 @@ static void deinit() {
 	gpath_destroy(gnomon_path);
 	gpath_destroy(tick_path);
 
-	layer_destroy(path_layer);
+	layer_destroy(s_ui.path_layer);
 	window_destroy(s_ui.window);
 }
 
