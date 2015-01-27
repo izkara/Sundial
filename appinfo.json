@@ -1,0 +1,19 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "MTID",
+    "longName": "Sundial",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "shortName": "Sundial",
+    "uuid": "75f0676a-0aa0-4a79-b8eb-f743ee03f6ed",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
