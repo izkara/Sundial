@@ -15,7 +15,7 @@ static const GPathInfo HOUSE_PATH_POINTS = {
   (GPoint []) {
     {0, 0}, {20, 0}, {20,20}, {0,20}   
   }
-};
+}; 
 
 #define HRS 16
 
