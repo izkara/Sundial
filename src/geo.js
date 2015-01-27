@@ -1,6 +1,12 @@
 Pebble.addEventListener('ready',
 	function(e) {
-		console.log("JavaScript app running.");
+		console.log("PebbleKit JS is ready");
+	}
+);
+
+Pebble.addEventListener('appmessage',
+	function(e) {
+		console.log("AppMessage received");
 	}
 );
 

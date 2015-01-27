@@ -9,6 +9,9 @@
 
 #include "pebble.h"
 
+#define KEY_LATITUDE 0
+#define KEY_LONGITUDE 1
+
 // Group all UI elements in a global struct
 static struct CompassUI {
 	Window *window;
@@ -28,6 +31,7 @@ static const GPathInfo NEEDLE_SOUTH_POINTS = { 3,
 
 // This is the function called by the Compass Service every time the compass heading changes by more than the filter (2 degrees in this example).
 void compass_heading_handler(CompassHeadingData heading_data){
+
 	// rotate needle accordingly
 	gpath_rotate_to(s_ui.needle_north, heading_data.magnetic_heading);
 	gpath_rotate_to(s_ui.needle_south, heading_data.magnetic_heading);
@@ -47,8 +51,10 @@ void compass_heading_handler(CompassHeadingData heading_data){
 static void path_layer_update_callback(Layer *path, GContext *ctx) {
 	gpath_draw_filled(ctx, s_ui.needle_north); // north filled
 	gpath_draw_outline(ctx, s_ui.needle_south); // south outlined
+
 	GRect bounds = layer_get_frame(path); // grabbing frame of current layer
 	GPoint path_center = GPoint(bounds.size.w / 2, bounds.size.h / 2); // creating center point
+
 	graphics_fill_circle(ctx, path_center, 4); // use it to make a black, centered circle
 	graphics_context_set_fill_color(ctx, GColorWhite);
 	graphics_fill_circle(ctx, path_center, 3); // then put a white circle on top
@@ -93,10 +99,33 @@ static void window_unload(Window *window) {
 	bitmap_layer_destroy(s_ui.bitmap_layer);
 }
 
+// AppMessage Callbacks
+static void inbox_received_callback(DictionaryIterator *iterator) {
+
+}
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+	APP_LOG(APP_LOG_LEVEL_ERROR, "Message Dropped");
+}
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+	APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox Send Failed");
+}
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+	APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox Send Success");
+}
+
 static void init(void) {
 	// initialize compass and set a filter to 2 degrees
 	compass_service_set_heading_filter(2 * (TRIG_MAX_ANGLE / 360));
 	compass_service_subscribe(&compass_heading_handler);
+
+	// Register callbacks
+	app_message_register_inbox_received(inbox_received_callback);
+	app_message_register_inbox_dropped(inbox_dropped_callback);
+	app_message_register_outbox_failed(outbox_failed_callback);
+	app_message_register_outbox_sent(outbox_sent_callback);
+
+	// Open AppMessage
+	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
 	// initialize base window
 	s_ui.window = window_create();
