@@ -55,9 +55,9 @@ static void path_layer_update_callback(Layer *path, GContext *ctx) {
 	GRect bounds = layer_get_frame(path); // grabbing frame of current layer
 	GPoint path_center = GPoint(bounds.size.w / 2, bounds.size.h / 2); // creating center point
 
-	graphics_fill_circle(ctx, path_center, 4); // use it to make a black, centered circle
+	graphics_fill_circle(ctx, path_center, 10); // use it to make a black, centered circle
 	graphics_context_set_fill_color(ctx, GColorWhite);
-	graphics_fill_circle(ctx, path_center, 3); // then put a white circle on top
+	graphics_fill_circle(ctx, path_center, 9); // then put a white circle on top
 }
 
 // Initializes the window and all the UI elements
@@ -102,6 +102,20 @@ static void window_unload(Window *window) {
 // AppMessage Callbacks
 static void inbox_received_callback(DictionaryIterator *iterator) {
 
+	Tuple *t = dict_read_first(iterator);
+
+	while(t != NULL) {
+		switch(t->key) {
+			case KEY_LATITUDE:
+				break;
+			case KEY_LONGITUDE:
+				break;
+			default:
+				APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized", (int)t->key);
+		}
+
+		t = dict_read_next(iterator);
+	}
 }
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
 	APP_LOG(APP_LOG_LEVEL_ERROR, "Message Dropped");
