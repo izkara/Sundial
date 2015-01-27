@@ -24,7 +24,7 @@ static GPath *house_path;
 
 static GPoint ticks[HRS];
 static double thla[HRS];
-static int thr[HRS];
+// static int thr[HRS];
 
 #define NUM_GRAPHIC_PATHS 1
 
@@ -144,6 +144,9 @@ double _tan(double x) {
      return (_sin(x)/_cos(x));  
 }
 /////////////////http://stackoverflow.com/questions/2284860/how-does-c-compute-sin-and-other-math-functions
+
+#define M_PI 3.14159265358979323846
+
 float arctan(float x){
     if( x < 0 ){ return -arctan(-x); }
     if( x > 1 ){ return M_PI/2 - arctan(1/x); }
@@ -158,7 +161,7 @@ float arctan(float x){
 }
 //////////http://www.experts-exchange.com/Other/Math_Science/Q_24377002.html
 
-int get_tick_data(double lat, lng, ref)
+int get_tick_data(double lat, double lng, double ref)
 {
   double slat;
   int h;
@@ -172,10 +175,10 @@ int get_tick_data(double lat, lng, ref)
     hra = hra - lng + ref;
     hla = RD(arctan(slat * _tan(DR(hra))));
 
-    //load hours
-    int t = (12+h)%12;
-    if (time == 0) thr[h+7]=12;
-    else thr[h+7] = t;
+    // //load hours
+    // int t = (12+h)%12;
+    // if (time == 0) thr[h+7]=12;
+    // else thr[h+7] = t;
 
     //load angles from north
     thla[i] = hla;
